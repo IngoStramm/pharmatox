@@ -517,3 +517,30 @@ function pt_get_empresa()
     $empresa_obj->whatsapp = $empresa_data['pt_whatsapp_empresa'];
     return $empresa_obj;
 }
+
+function pt_get_certificados_dir() {
+    $wp_upload_dir = wp_upload_dir();
+    $certificados_dir = $wp_upload_dir['basedir'] . '/certificados';
+    if (!is_dir($certificados_dir)) {
+        if (!mkdir($certificados_dir, 0755, true)) {
+            return __('Não foi criar o diretório para armazenar o certificado.', 'pt');
+        }
+    }
+    return $certificados_dir;
+}
+
+function pt_get_pdf_dir()
+{
+    $wp_upload_dir = wp_upload_dir();
+    $pdf_dir = $wp_upload_dir['basedir'] . '/pdf';
+    if (!is_dir($pdf_dir)) {
+        if (!mkdir(
+            $pdf_dir,
+            0755,
+            true
+        )) {
+            return __('Não foi criar o diretório para armazenar o certificado.', 'pt');
+        }
+    }
+    return $pdf_dir;
+}
