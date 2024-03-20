@@ -213,7 +213,7 @@ function pt_generate_pdf($post_id, $pem_file)
     $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
     // set margins
-    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP + 10, PDF_MARGIN_RIGHT);
     $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
     $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 
@@ -248,8 +248,8 @@ function pt_generate_pdf($post_id, $pem_file)
     $pdf->setTextShadow(array('enabled' => true, 'depth_w' => 0.2, 'depth_h' => 0.2, 'color' => array(196, 196, 196), 'opacity' => 1, 'blend_mode' => 'Normal'));
 
     // Set some content to print
-    $html = '<p>&nbsp;</p>';
-    $html .= '<p>&nbsp;</p>';
+    // $html = '<p>&nbsp;</p>';
+    // $html .= '<p>&nbsp;</p>';
 
     $html .= apply_filters('the_content', get_the_content(null, null, $post_id));
 
