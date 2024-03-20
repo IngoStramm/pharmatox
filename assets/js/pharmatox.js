@@ -573,6 +573,26 @@
         });
     }
 
+    function ptGerarPdfModal() {
+        const gerarPdfModal = document.getElementById('gerar-pdf-modal');
+        if (gerarPdfModal) {
+            console.log('ptGerarPdfModal');
+            gerarPdfModal.addEventListener('show.bs.modal', event => {
+                console.log('click');
+                // Button that triggered the modal
+                const button = event.relatedTarget;
+                // Extract info from data-bs-* attributes
+                const postId = button.getAttribute('data-bs-post_id');
+                // If necessary, you could initiate an Ajax request here
+                // and then do the updating in a callback.
+
+                // Update the modal's content.
+                const modalBodyInput = gerarPdfModal.querySelector('.modal-body input[name="post_id"]');
+                modalBodyInput.value = postId;
+            });
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         wtFormsValidation();
         wtPasswordStrength();
@@ -587,6 +607,7 @@
         wtSortTableList();
         wtClearInputValue();
         pt_contact_form();
+        ptGerarPdfModal();
     }, false);
 
 })();

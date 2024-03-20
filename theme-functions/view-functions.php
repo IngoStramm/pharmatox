@@ -128,15 +128,23 @@ function pt_show_anuncio_terms_nav($terms)
     return $output;
 }
 
-function pt_show_create_pdf_form($post_id)
+function pt_show_create_pdf_form()
 {
     $pt_add_form_create_pdf_nonce = wp_create_nonce('pt_form_create_pdf_nonce');
     $output = '
-    <form name="create-pdf-form" id="create-pdf-form-for-' . $post_id . '" action="' . esc_url(admin_url('admin-post.php')) . '" method="post" class="needs-validation" novalidate>
+    <form name="create-pdf-form" action="' . esc_url(admin_url('admin-post.php')) . '" method="post" class="needs-validation" novalidate>
             <input type="hidden" name="pt_form_create_pdf_nonce" value="' . $pt_add_form_create_pdf_nonce . '" />
             <input type="hidden" value="pt_create_pdf_form" name="action">
-            <input type="hidden" value="' . $post_id . '" name="post_id">
-            <button type="submit" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="' . __('Gerar PDF', 'pt') . '" tabindex="1"><i class="bi bi-file-earmark-pdf-fill"></i></button>
+            <input type="hidden" value="" name="post_id">
+            <div class="form-check">
+                <input name="pt_send_pdf_to_paciente" class="form-check-input" type="checkbox" value="1" id="pt_send_pdf_to_paciente">
+                <label class="form-check-label" for="pt_send_pdf_to_paciente">' . __('Enviar PDF por e-mail para o <strong>paciente</strong>', 'pt') . '</label>
+            </div>
+            <div class="form-check mb-3">
+                <input name="pt_send_pdf_to_fornecedor" class="form-check-input" type="checkbox" value="1" id="pt_send_pdf_to_fornecedor">
+                <label class="form-check-label" for="pt_send_pdf_to_fornecedor">' . __('Enviar PDF por e-mail para o <strong>fornecedor</strong>', 'pt') . '</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="' . __('Gerar PDF', 'pt') . '" tabindex="1"><i class="bi bi-file-earmark-pdf-fill"></i> ' . __('Gerar PDF', 'pt') . '</button>
         </form>
     ';
     return $output;
@@ -152,9 +160,40 @@ function pt_show_relatorio_actions($post_id)
     }
 
     $output .= '
-            <a href="' . get_admin_url(null, 'post.php?post=' . $post_id . '&action=edit') . '" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="' .  __('Editar relatório', 'pt') . '"><i class="bi bi-pencil-fill"></i></a>' .
-            
-        pt_show_create_pdf_form($post_id);
+            <a href="' . get_admin_url(null, 'post.php?post=' . $post_id . '&action=edit') . '" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-title="' .  __('Editar relatório', 'pt') . '"><i class="bi bi-pencil-fill"></i></a>';
+
+    $output .= '
+            <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-title="' . __('Gerar PDF', 'pt') . '" data-bs-toggle="modal" data-bs-target="#gerar-pdf-modal" data-bs-post_id="' . $post_id . '"><i class="bi bi-file-earmark-pdf-fill"></i></a>';
+
+    // pt_show_create_pdf_form($post_id);
 
     return $output;
+}
+
+add_action('pt_modal', 'pt_gerar_pdf_modal');
+
+function pt_gerar_pdf_modal()
+{
+    $output = '';
+    $output .= '
+    <!-- Modal -->
+<div class="modal fade" id="gerar-pdf-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="gerar-pdf-modalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="gerar-pdf-modalLabel">' . __('Gerar PDF', 'wt') . '</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">';
+    $output .= pt_show_create_pdf_form();
+    $output .= '</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">' . __('Cancelar', 'wt') . '</button>';
+    $output .= '
+      </div>
+    </div>
+  </div>
+</div>
+    ';
+    echo $output;
 }

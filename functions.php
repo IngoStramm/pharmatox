@@ -30,7 +30,9 @@ require_once(PT_DIR . '/scripts.php');
 
 function pt_test()
 {
-    pt_debug(get_option('users_can_register'));
+    // $empresa_obj = pt_get_empresa();
+    // $empresa_logo_file = get_attached_file($empresa_obj->logo_id);
+    pt_debug(get_the_date($post_id));
 }
 
 #endregion Debug

@@ -10,7 +10,9 @@ function wt_modify_post_title($data, $postarr)
         isset($_POST['pt_relatorio_paciente'])
     ) {
         $medico_data = get_userdata($_POST['pt_relatorio_medico']);
-        $medico_nome = $medico_nome = $medico_data->first_name && $medico_data->last_name ? $medico_data->first_name && $medico_data->last_name : $medico_data->display_name;
+        $medico_nome = $medico_data->first_name && $medico_data->last_name ?
+            $medico_data->first_name . ' ' . $medico_data->last_name :
+            $medico_data->display_name;
         $paciente_nome = get_the_title($_POST['pt_relatorio_paciente']);
         // $date = $data['post_date']; // j \d\e F \d\e Y
         // $date = date('j \d\e F \d\e Y', strtotime($data['post_date']));

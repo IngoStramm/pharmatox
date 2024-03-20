@@ -30,8 +30,6 @@ $fornecedor_nome = $fornecedor_obj->nome;
 $fornecedor_whatsapp = $fornecedor_obj->whatsapp;
 
 $cids = wp_get_post_terms($post_id, 'cid');
-$cid_name = $cids[0]->name;
-$cid_codigo = get_term_meta($cids[0]->term_id, 'pt_cid_codigo', true);
 
 $empresa = pt_get_empresa();
 
@@ -110,11 +108,17 @@ $empresa = pt_get_empresa();
                         </dd>
                     <?php } ?>
 
-                    <dt class="col-sm-3"><?php _e('Doença', 'pt'); ?></dt>
-                    <dd class="col-sm-9"><?php echo $cid_name ?></dd>
-
-                    <dt class="col-sm-3"><?php _e('CID', 'pt'); ?></dt>
-                    <dd class="col-sm-9"><?php echo $cid_codigo ?></dd>
+                    <dt class="col-sm-3"><?php _e('Doenças (CID)', 'pt'); ?></dt>
+                    <dd class="col-sm-9">
+                        <?php foreach ($cids as $k => $cid) {
+                            $cid_name = $cid->name;
+                            $cid_codigo = get_term_meta($cid->term_id, 'pt_cid_codigo', true);
+                            if($k !== 0) {
+                                echo ', ';
+                            }
+                            echo $cid_name . ' (' . $cid_codigo . ')';
+                        } ?>
+                    </dd>
 
                     <dt class="col-sm-3"><?php _e('Data de emissão', 'pt'); ?></dt>
                     <dd class="col-sm-9"><?php echo get_the_date(); ?></dd>

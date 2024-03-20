@@ -58,9 +58,47 @@ function pt_create_pdf_form_handle()
         exit;
     }
 
+    $pdf_dir = pt_get_pdf_dir();
+    $pdf_file_dir = $pdf_dir . '/relatorio-' . $post_id . '.pdf';
+
+    if (file_exists($pdf_file_dir)) {
+        unlink($pdf_file_dir);
+    }
     $tcpdf = pt_generate_pdf($post_id, $pem_file);
 
-    $_SESSION['pt_create_pdf_success_message'] = sprintf(__('PDF gerado com sucesso. Post ID: %s, PDF: "%s".', 'pt'), $post_id, $tcpdf);
+    $pdf_url = pt_get_pdf_url();
+    $pdf_file_url = $pdf_url . '/relatorio-' . $post_id . '.pdf';
+
+    $send_pdf_to_paciente = isset($_POST['pt_send_pdf_to_paciente']) ? true : false;
+    $send_pdf_to_fornecedor = isset($_POST['pt_send_pdf_to_fornecedor']) ? true : false;
+    $paciente_obj = pt_get_paciente_from_relatorio($post_id);
+    $medico_obj = pt_get_medico_from_relatorio($post_id);
+    $fornecedor_obj = pt_get_fornecedor_from_relatorio($post_id);
+
+    if ($send_pdf_to_paciente) {
+        $to = $paciente_obj->email;
+        $subject = sprintf(__('%s | Relatório Médico #%s', 'pt'), get_bloginfo('name'), $post_id);
+        $body = sprintf(
+            __('<h3>Olá, %s!</h3><p>Este é o link para visualizar o seu relatório médico: <a href="%s" target="_blank">ver relatório</a>.</p><p>Em caso de dúvida, entre em contato como seu médico.</p>'),
+            $paciente_obj->nome,
+            $pdf_file_url
+        );
+        pt_mail($to, $subject, $body);
+    }
+
+    if ($send_pdf_to_fornecedor) {
+        $to = $fornecedor_obj->email;
+        $subject = sprintf(__('%s | Relatório Médico #%s', 'pt'), get_bloginfo('name'), $post_id);
+        $body = sprintf(
+            __('<h3>Olá, %s!</h3><p>O médico %s compartilhou com você este relatório médico: <a href="%s" target="_blank">ver relatório</a>.</p>'),
+            $fornecedor_obj->nome,
+            $medico_obj->nome,
+            $pdf_file_url
+        );
+        pt_mail($to, $subject, $body);
+    }
+
+    $_SESSION['pt_create_pdf_success_message'] = sprintf(__('PDF gerado com sucesso, <a target="_blank" href="%s">abrir PDF</a>.', 'pt'), $pdf_file_url);
     wp_safe_redirect($redirect_url);
     exit;
 }
@@ -146,15 +184,22 @@ function pt_convert_pfx_to_pem($pfx_file, $certificado_password, $medico_id)
  */
 function pt_generate_pdf($post_id, $pem_file)
 {
+    $medico_obj = pt_get_medico_from_relatorio($post_id);
+    $paciente_obj = pt_get_paciente_from_relatorio($post_id);
+    $cids = wp_get_post_terms($post_id, 'cid');
+    $empresa = pt_get_empresa();
+
+    $footer_info = sprintf(__('Assinado digitalmente por %s, CRM: %s em %s.', 'pt'), $medico_obj->nome, $medico_obj->crm, get_the_date('', $post_id));
+
     // create new PDF document
-    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf = new PTPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
     // set document information
     $pdf->SetCreator(PDF_CREATOR);
-    $pdf->SetAuthor('Nicola Asuni');
-    $pdf->SetTitle('TCPDF Example 001');
-    $pdf->SetSubject('TCPDF Tutorial');
-    $pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+    $pdf->SetAuthor($medico_obj->nome);
+    $pdf->SetTitle(printf(__('Relatório #%s', 'pt'), $post_id));
+    $pdf->SetSubject(get_the_title($post_id));
+    $pdf->SetKeywords('Relatório Médico');
 
     // set default header data
     $pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE . ' 001', PDF_HEADER_STRING, array(0, 64, 255), array(0, 64, 128));
@@ -203,25 +248,57 @@ function pt_generate_pdf($post_id, $pem_file)
     $pdf->setTextShadow(array('enabled' => true, 'depth_w' => 0.2, 'depth_h' => 0.2, 'color' => array(196, 196, 196), 'opacity' => 1, 'blend_mode' => 'Normal'));
 
     // Set some content to print
-    $html = <<<EOD
-<h1>Welcome to <a href="http://www.tcpdf.org" style="text-decoration:none;background-color:#CC0000;color:black;">&nbsp;<span style="color:black;">TC</span><span style="color:white;">PDF</span>&nbsp;</a>!</h1>
-<i>This is the first example of TCPDF library.</i>
-<p>This text is printed using the <i>writeHTMLCell()</i> method but you can also use: <i>Multicell(), writeHTML(), Write(), Cell() and Text()</i>.</p>
-<p>Please check the source code documentation and other examples for further information.</p>
-<p style="color:#CC0000;">TO IMPROVE AND EXPAND TCPDF I NEED YOUR SUPPORT, PLEASE <a href="http://sourceforge.net/donate/index.php?group_id=128076">MAKE A DONATION!</a></p>
-EOD;
+    $html = '<p>&nbsp;</p>';
+    $html .= '<p>&nbsp;</p>';
+
+    $html .= apply_filters('the_content', get_the_content(null, null, $post_id));
+
+    $html .= '<h4>' . __('CIDs', 'pt') . '</h4>';
+    $html .= '<ul>';
+    foreach ($cids as $cid) {
+        $cid_name = $cid->name;
+        $cid_codigo = get_term_meta($cid->term_id, 'pt_cid_codigo', true);
+        $html .= '<li>' . sprintf(__('%s'), $cid_codigo) . '</li>';
+    }
+    $html .= '</ul>';
+
+    // $html .= '<p>&nbsp;</p>';
+
+    $html .= '<h4>' . __('Médico', 'pt') . '</h4>';
+    $html .= '<ul>';
+    $html .= '<li>' . sprintf(__('Nome: %s', 'pt'), $medico_obj->nome) .  '</li>';
+    $html .= '<li>' . sprintf(__('Especialidade: %s', 'pt'), $medico_obj->especialidade) .  '</li>';
+    $html .= '<li>' . sprintf(__('CRM: %s', 'pt'), $medico_obj->crm) .  '</li>';
+    $html .= '</ul>';
+
+    $html .= '<h4>' . __('Paciente', 'pt') . '</h4>';
+    $html .= '<ul>';
+    $html .= '<li>' . sprintf(__('Nome: %s', 'pt'), $paciente_obj->nome) .  '</li>';
+    $html .= '</ul>';
+
+    $html .= '<p><small>' . sprintf(__('Relatório médico emitido em %s.', 'pt'), get_the_date('', $post_id)) . '</small></p>';
+
+    //     $html = <<<EOD
+    // <h1>Welcome to <a href="http://www.tcpdf.org" style="text-decoration:none;background-color:#CC0000;color:black;">&nbsp;<span style="color:black;">TC</span><span style="color:white;">PDF</span>&nbsp;</a>!</h1>
+    // <i>This is the first example of TCPDF library.</i>
+    // <p>This text is printed using the <i>writeHTMLCell()</i> method but you can also use: <i>Multicell(), writeHTML(), Write(), Cell() and Text()</i>.</p>
+    // <p>Please check the source code documentation and other examples for further information.</p>
+    // <p style="color:#CC0000;">TO IMPROVE AND EXPAND TCPDF I NEED YOUR SUPPORT, PLEASE <a href="http://sourceforge.net/donate/index.php?group_id=128076">MAKE A DONATION!</a></p>
+    // EOD;
 
     // Print text using writeHTMLCell()
     $pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
 
     // ---------------------------------------------------------
     $info = array(
-        'Name' => 'TCPDF',
-        'Location' => 'Office',
-        'Reason' => 'Testing TCPDF',
-        'ContactInfo' => 'http://www.tcpdf.org',
+        'Name' => $empresa->nome,
+        'Location' => $empresa->endereco,
+        'Reason' => 'Assinatura digital, Não recusa, Chaves de criptografia, Proteção de e-mail, Autenticação do cliente',
+        'ContactInfo' => get_site_url(),
     );
     $pdf->setSignature($pem_file, $pem_file, 'tcpdfdemo', '', 2, $info, 'A');
+
+    $pdf->setFooterInfo($footer_info);
 
     $pdf_dir = pt_get_pdf_dir();
     // Close and output PDF document

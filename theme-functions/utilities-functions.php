@@ -544,3 +544,9 @@ function pt_get_pdf_dir()
     }
     return $pdf_dir;
 }
+
+function pt_get_pdf_url() {
+    $wp_upload_dir = wp_upload_dir();
+    $pdf_url = $wp_upload_dir['baseurl'] . '/pdf';
+    return $pdf_url;
+}
