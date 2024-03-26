@@ -187,12 +187,15 @@ function pt_generate_pdf($post_id, $pem_file)
     $medico_obj = pt_get_medico_from_relatorio($post_id);
     $paciente_obj = pt_get_paciente_from_relatorio($post_id);
     $cids = wp_get_post_terms($post_id, 'cid');
-    $empresa = pt_get_empresa();
+    $empresa = pt_get_empresa($post_id);
 
     $footer_info = sprintf(__('Assinado digitalmente por %s, CRM: %s em %s.', 'pt'), $medico_obj->nome, $medico_obj->crm, get_the_date('', $post_id));
 
     // create new PDF document
     $pdf = new PTPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    $pdf->setFooterInfo($footer_info);
+    $pdf->setRelatorioId($post_id);
 
     // set document information
     $pdf->SetCreator(PDF_CREATOR);
@@ -213,9 +216,9 @@ function pt_generate_pdf($post_id, $pem_file)
     $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
     // set margins
-    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP + 10, PDF_MARGIN_RIGHT);
+    $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP + 30, PDF_MARGIN_RIGHT);
     $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER /2);
 
     // set auto page breaks
     $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
@@ -297,8 +300,6 @@ function pt_generate_pdf($post_id, $pem_file)
         'ContactInfo' => get_site_url(),
     );
     $pdf->setSignature($pem_file, $pem_file, 'tcpdfdemo', '', 2, $info, 'A');
-
-    $pdf->setFooterInfo($footer_info);
 
     $pdf_dir = pt_get_pdf_dir();
     // Close and output PDF document

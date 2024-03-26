@@ -31,7 +31,7 @@ $fornecedor_whatsapp = $fornecedor_obj->whatsapp;
 
 $cids = wp_get_post_terms($post_id, 'cid');
 
-$empresa = pt_get_empresa();
+$empresa = pt_get_empresa($post_id);
 
 // pt_debug($empresa);
 ?>
@@ -62,8 +62,6 @@ $empresa = pt_get_empresa();
                 <div class="d-flex justify-content-start align-items-center gap-1 my-3">
                     <?php echo pt_show_relatorio_actions($post_id); ?>
                 </div>
-                <h3 class="text-danger">Adicionar opção de enviar relatório por e-mail para o paciente e para o fornecedor (opções individuais)</h3>
-                <h3 class="text-warning">Pesquisar por opções de corretor ortográfico</h3>
                 <dl class="row">
 
                     <dt class="col-sm-3"><?php _e('Médico', 'pt'); ?></dt>
@@ -94,8 +92,10 @@ $empresa = pt_get_empresa();
                         <dd class="col-sm-9"><?php echo $paciente_endereco; ?></dd>
                     <?php } ?>
 
-                    <dt class="col-sm-3"><?php _e('Fornecedor', 'pt'); ?></dt>
-                    <dd class="col-sm-9"><?php echo $fornecedor_nome ?></dd>
+                    <?php if ($fornecedor_nome) { ?>
+                        <dt class="col-sm-3"><?php _e('Fornecedor', 'pt'); ?></dt>
+                        <dd class="col-sm-9"><?php echo $fornecedor_nome ?></dd>
+                    <?php } ?>
 
                     <?php if ($fornecedor_whatsapp) { ?>
                         <dt class="col-sm-3">
@@ -113,10 +113,10 @@ $empresa = pt_get_empresa();
                         <?php foreach ($cids as $k => $cid) {
                             $cid_name = $cid->name;
                             $cid_codigo = get_term_meta($cid->term_id, 'pt_cid_codigo', true);
-                            if($k !== 0) {
+                            if ($k !== 0) {
                                 echo ', ';
                             }
-                            echo $cid_name . ' (' . $cid_codigo . ')';
+                            echo $cid_codigo ? $cid_name . ' (' . $cid_codigo . ')' : $cid_name;
                         } ?>
                     </dd>
 

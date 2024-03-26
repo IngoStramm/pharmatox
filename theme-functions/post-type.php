@@ -110,3 +110,40 @@ function pt_fornecedores_post_type()
         )
     );
 }
+
+add_action('init', 'pt_empresas_post_type', 1);
+
+function pt_empresas_post_type()
+{
+    $fornecedores = new WT_Post_Type(
+        'Empresa', // Nome (Singular) do Post Type.
+        'empresas' // Slug do Post Type.;
+    );
+
+    $fornecedores->set_labels(
+        array(
+            'name'               => __('Empresa', 'pt'),
+            'singular_name'      => __('Empresa', 'pt'),
+            'menu_name'          => __('Empresas', 'pt'),
+            'name_admin_bar'     => __('Empresa', 'pt'),
+            'add_new'            => __('Adicionar Empresa', 'pt'),
+            'add_new_item'       => __('Adicionar Nova Empresa', 'pt'),
+            'new_item'           => __('Nova Empresa', 'pt'),
+            'edit_item'          => __('Editar Empresa', 'pt'),
+            'view_item'          => __('Visualizar Empresa', 'pt'),
+            'all_items'          => __('Todas os Empresas', 'pt'),
+            'search_items'       => __('Pesquisar Empresas', 'pt'),
+            'parent_item_colon'  => __('Empresas Pai', 'pt'),
+            'not_found'          => __('Nenhuma Empresa encontrado', 'pt'),
+            'not_found_in_trash' => __('Nenhuma Empresa encontrado na lixeira.', 'pt'),
+        )
+    );
+
+    $fornecedores->set_arguments(
+        array(
+            'supports'             => array('title', 'revisions'),
+            'menu_icon'         => 'dashicons-store',
+            'show_in_nav_menus' => true
+        )
+    );
+}

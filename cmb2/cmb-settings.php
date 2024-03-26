@@ -120,6 +120,8 @@ function pt_register_settings_options_metabox()
         'tab_title'    => esc_html__('Dados da empresa', 'pt'),
     );
 
+    /*
+
     // 'tab_group' property is supported in > 2.4.0.
     if (version_compare(CMB2_VERSION, '2.4.0')) {
         $args['display_cb'] = 'pt_options_display_with_tabs';
@@ -156,6 +158,8 @@ function pt_register_settings_options_metabox()
         'id'      => 'pt_whatsapp_empresa',
         'type'    => 'text',
     ));
+
+    */
 
 }
 

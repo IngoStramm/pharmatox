@@ -506,19 +506,23 @@ function pt_get_fornecedor_from_relatorio($post_id)
  *
  * @return object
  */
-function pt_get_empresa()
+function pt_get_empresa($post_id)
 {
-    $empresa_data = get_option('pt_secondary_options');
+    $empresa_id = get_post_meta($post_id, 'pt_relatorio_empresa', true);
+    if (!$empresa_id) {
+        return;
+    }
     $empresa_obj = new StdClass();
-    $empresa_obj->logo_url = $empresa_data['pt_empresa_logo'];
-    $empresa_obj->logo_id = $empresa_data['pt_empresa_logo_id'];
-    $empresa_obj->nome = $empresa_data['pt_nome_empresa'];
-    $empresa_obj->endereco = $empresa_data['pt_endereco_empresa'];
-    $empresa_obj->whatsapp = $empresa_data['pt_whatsapp_empresa'];
+    $empresa_obj->logo_url = get_post_meta($empresa_id, 'pt_empresa_logo', true);
+    $empresa_obj->logo_id = get_post_meta($empresa_id, 'pt_empresa_logo_id', true);
+    $empresa_obj->nome = get_the_title($empresa_id);
+    $empresa_obj->endereco = get_post_meta($empresa_id, 'pt_endereco_empresa', true);
+    $empresa_obj->whatsapp = get_post_meta($empresa_id, 'pt_whatsapp_empresa', true);
     return $empresa_obj;
 }
 
-function pt_get_certificados_dir() {
+function pt_get_certificados_dir()
+{
     $wp_upload_dir = wp_upload_dir();
     $certificados_dir = $wp_upload_dir['basedir'] . '/certificados';
     if (!is_dir($certificados_dir)) {
@@ -545,7 +549,8 @@ function pt_get_pdf_dir()
     return $pdf_dir;
 }
 
-function pt_get_pdf_url() {
+function pt_get_pdf_url()
+{
     $wp_upload_dir = wp_upload_dir();
     $pdf_url = $wp_upload_dir['baseurl'] . '/pdf';
     return $pdf_url;
